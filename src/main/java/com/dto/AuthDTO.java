@@ -1,6 +1,13 @@
 package com.dto;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+
 public class AuthDTO {
+
+    @NotNull
+    @NotEmpty
     private String email;
     private String password;
 

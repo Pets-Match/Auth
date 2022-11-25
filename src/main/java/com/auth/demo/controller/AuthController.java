@@ -27,6 +27,10 @@ public class AuthController {
     public ResponseEntity<String> auth(@RequestBody AuthDTO auth) {
         User user = userService.findUserByEmail(auth.getEmail());
 
+        if(auth.getEmail() == null || auth.getPassword() == null){
+            return new ResponseEntity<String>("Invalid Body Request, either email or password is null ", HttpStatus.BAD_REQUEST);
+        }
+
         if (user != null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 

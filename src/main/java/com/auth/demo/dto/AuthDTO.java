@@ -1,4 +1,4 @@
-package com.dto;
+package com.auth.demo.dto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

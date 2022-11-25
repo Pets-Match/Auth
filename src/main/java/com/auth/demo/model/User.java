@@ -1,15 +1,16 @@
-package com.model;
+package com.auth.demo.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
+
 
 @Entity
+@Table(name="users")
 public class User{
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
@@ -21,11 +22,16 @@ public class User{
     @Column
     private String password;
 
+    public User(){
+    }
+
     public User(String email, String password){
         this.email = email;
         this.password = password;
     }
  
+    
+
     public int getId(){
         return this.id;
     }

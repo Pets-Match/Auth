@@ -1,4 +1,5 @@
-package com.controller;
+package com.auth.demo.controller;
+
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,31 +12,40 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dto.AuthDTO;
-import com.model.User;
-import com.service.UserService;
+import com.auth.demo.dto.AuthDTO;
+import com.auth.demo.model.User;
+import com.auth.demo.service.UserService;
 
 @RestController
 @RequestMapping(value = "/auth")
 public class AuthController {
 
     @Autowired
-    UserService userService;
-    
+    private UserService userService;
+
     @GetMapping()
     public ResponseEntity<String> auth(@RequestBody AuthDTO auth) {
-        
-        
-        
-        JSONObject json = new JSONObject();
-        json.put("email", auth.getPassword());
-        
-        
-        return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+        User user = userService.findUserByEmail(auth.getEmail());
+
+        if (user != null) {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+            Boolean verify = passwordEncoder.matches(auth.getPassword(), user.getPassword());
+
+            if(verify){
+                JSONObject json = new JSONObject(user);
+                return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+            }
+
+            return new ResponseEntity<String>("Not found", HttpStatus.BAD_REQUEST);
+        } else {
+            return new ResponseEntity<String>("Not found", HttpStatus.BAD_REQUEST);
+        }
+
     }
-    
+
     @PostMapping
-    public ResponseEntity<String> create(@RequestBody AuthDTO auth){
+    public ResponseEntity<String> create(@RequestBody AuthDTO auth) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String newPassword = passwordEncoder.encode(auth.getPassword());
 

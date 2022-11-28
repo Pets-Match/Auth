@@ -3,11 +3,11 @@ package com.auth.demo.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.auth.demo.model.User;
+import com.auth.demo.model.Role;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer>{
+public interface RoleRepository extends JpaRepository<Role, Integer>{
     
-    User findByEmail(String email); 
+    Role findByName(String name); 
 
 }

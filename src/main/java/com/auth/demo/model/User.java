@@ -1,10 +1,15 @@
 package com.auth.demo.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 
@@ -21,6 +26,9 @@ public class User{
 
     @Column
     private String password;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Collection<Role> roles = new ArrayList<>();
 
     public User(){
     }
@@ -49,6 +57,10 @@ public class User{
 
     public void setPassword(String password){
        this.password = password;
+    }
+
+    public Collection<Role> getRoles() {
+        return roles;
     }
 
     

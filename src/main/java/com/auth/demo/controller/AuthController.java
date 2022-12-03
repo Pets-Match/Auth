@@ -3,11 +3,14 @@ package com.auth.demo.controller;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.json.JSONObject;
+import org.springframework.data.mapping.AccessOptions.SetOptions.Propagation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,6 +25,13 @@ import com.auth.demo.dto.RoleToUserDTO;
 import com.auth.demo.dto.UserDTO;
 import com.auth.demo.model.User;
 import com.auth.demo.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublishers;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -32,9 +42,10 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @RequestMapping(value = "/auth")
 public class AuthController {
     static String secret = "yjI5BMKPBV55bhp4hqIiVUSxWFiYElL2HU213Y7128JS1289IKO";
+
     private final UserService userService;
 
-    public AuthController(UserService userService){
+    public AuthController(UserService userService) {
         this.userService = userService;
     }
 
@@ -76,33 +87,60 @@ public class AuthController {
         }
     }
 
-
     @PostMapping
-    public ResponseEntity<String> create(@RequestBody UserDTO userDTO) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String newPassword = passwordEncoder.encode(userDTO.getPassword());
+    @Transactional(rollbackOn = { Exception.class, NullPointerException.class })
 
-        User user = new User(userDTO.getEmail(), newPassword);
-        User savedUser = userService.saveUser(user);
-        JSONObject userJson = new JSONObject(savedUser);
-        
-        return new ResponseEntity<String>(userJson.toString(), HttpStatus.CREATED);
-        
+    public ResponseEntity<String> create(@RequestBody UserDTO userDTO) {
+        try {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            String newPassword = passwordEncoder.encode(userDTO.getPassword());
+
+            User user = new User(userDTO.getEmail(), newPassword);
+            User savedUser = userService.saveUser(user);
+            JSONObject userJson = new JSONObject(savedUser);
+
+            JSONObject json = new JSONObject(userDTO);
+            json.put("id", 1);
+
+            var request = HttpRequest.newBuilder()
+                    .uri(new URI("http://192.168.1.100:6666/owner"))
+                    .header("Content-type", "application/json")
+                    .POST(BodyPublishers.ofString(json.toString()))
+                    .build();
+            var client = HttpClient.newHttpClient();
+
+            HttpResponse<String> response = client.send(request,
+                    HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 400) {
+                JSONObject errorJSON = new JSONObject(response.body());
+                throw new Exception(errorJSON.getString("error"));
+            }
+
+            System.out.println(json.toString());
+
+            return new ResponseEntity<String>(userJson.toString(), HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            // JSONObject json = new JSONObject();
+            // json.put("message", "Credentials might be already registered");
+            // json.put("error", e.getLocalizedMessage());
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+        }
     }
-    
+
     @PostMapping("/user/add-role")
-    public ResponseEntity<String> addRole(@RequestBody RoleToUserDTO roleToUserDTO){
-        
+    public ResponseEntity<String> addRole(@RequestBody RoleToUserDTO roleToUserDTO) {
+
         userService.addRoleToUser(roleToUserDTO.getEmail(), roleToUserDTO.getRoleName());
         return null;
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getUsers(){
+    public ResponseEntity<List<User>> getUsers() {
         return ResponseEntity.ok().body(userService.getUsers());
     }
-
-
 
     @GetMapping("/middleware")
     public ResponseEntity<String> middleware(HttpServletRequest request) {
@@ -127,8 +165,5 @@ public class AuthController {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-
-
-
 
 }

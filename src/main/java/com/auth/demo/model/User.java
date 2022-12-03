@@ -12,10 +12,9 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
-
 @Entity
-@Table(name="users")
-public class User{
+@Table(name = "users")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
@@ -30,38 +29,36 @@ public class User{
     @ManyToMany(fetch = FetchType.EAGER)
     private Collection<Role> roles = new ArrayList<>();
 
-    public User(){
+    public User() {
     }
 
-    public User(String email, String password){
+    public User(String email, String password) {
         this.email = email;
         this.password = password;
     }
- 
-    
 
-    public int getId(){
+    public int getId() {
         return this.id;
     }
 
-    public String getEmail(){
+    public String getEmail() {
         return this.email;
     }
-    public String getPassword(){
+
+    public String getPassword() {
         return this.password;
     }
 
-    public void setEmail(String email){
-       this.email = email;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public void setPassword(String password){
-       this.password = password;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Collection<Role> getRoles() {
         return roles;
     }
 
-    
 }

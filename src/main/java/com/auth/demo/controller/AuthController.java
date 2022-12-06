@@ -3,14 +3,12 @@ package com.auth.demo.controller;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.json.JSONObject;
-import org.springframework.data.mapping.AccessOptions.SetOptions.Propagation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,7 +23,6 @@ import com.auth.demo.dto.RoleToUserDTO;
 import com.auth.demo.dto.UserDTO;
 import com.auth.demo.model.User;
 import com.auth.demo.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -39,6 +36,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @RestController
+
 @RequestMapping(value = "/auth")
 public class AuthController {
     static String secret = "yjI5BMKPBV55bhp4hqIiVUSxWFiYElL2HU213Y7128JS1289IKO";
@@ -88,8 +86,6 @@ public class AuthController {
     }
 
     @PostMapping
-    @Transactional(rollbackOn = { Exception.class, NullPointerException.class })
-
     public ResponseEntity<String> create(@RequestBody UserDTO userDTO) {
         try {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -99,11 +95,14 @@ public class AuthController {
             User savedUser = userService.saveUser(user);
             JSONObject userJson = new JSONObject(savedUser);
 
+            System.out.println("PASSED THROUGHT IT");
+
             JSONObject json = new JSONObject(userDTO);
-            json.put("id", 1);
+            json.put("id", savedUser.getId());
+
 
             var request = HttpRequest.newBuilder()
-                    .uri(new URI("http://192.168.1.100:6666/owner"))
+                    .uri(new URI("http://localhost:6666/owner"))
                     .header("Content-type", "application/json")
                     .POST(BodyPublishers.ofString(json.toString()))
                     .build();
@@ -112,12 +111,13 @@ public class AuthController {
             HttpResponse<String> response = client.send(request,
                     HttpResponse.BodyHandlers.ofString());
 
+
+
             if (response.statusCode() == 400) {
                 JSONObject errorJSON = new JSONObject(response.body());
                 throw new Exception(errorJSON.getString("error"));
             }
 
-            System.out.println(json.toString());
 
             return new ResponseEntity<String>(userJson.toString(), HttpStatus.CREATED);
 
@@ -125,6 +125,8 @@ public class AuthController {
             // JSONObject json = new JSONObject();
             // json.put("message", "Credentials might be already registered");
             // json.put("error", e.getLocalizedMessage());
+
+            System.out.println(e.getMessage());
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 
         }

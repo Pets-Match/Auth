@@ -17,11 +17,6 @@ public class UserDTO {
     private String street;
     private String num;
     private String addInfo;
-    private String dogName;
-    private int age;
-    private String specie;
-    private String race;
-    private String gender;
 
     public String getName() {
         return name;
@@ -95,46 +90,6 @@ public class UserDTO {
         this.addInfo = addInfo;
     }
 
-    public String getDogName() {
-        return dogName;
-    }
-
-    public void setDogName(String dogName) {
-        this.dogName = dogName;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getSpecie() {
-        return specie;
-    }
-
-    public void setSpecie(String specie) {
-        this.specie = specie;
-    }
-
-    public String getRace() {
-        return race;
-    }
-
-    public void setRace(String race) {
-        this.race = race;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -152,8 +107,7 @@ public class UserDTO {
     }
 
     public UserDTO(@NotNull @NotEmpty String email, String password, String phone, String zipCode, String state,
-            String city, String neighborhood, String street, String num, String addInfo, String dogName, int age,
-            String specie, String race, String gender) {
+            String city, String neighborhood, String street, String num, String addInfo) {
         this.email = email;
         this.password = password;
         this.phone = phone;
@@ -164,11 +118,7 @@ public class UserDTO {
         this.street = street;
         this.num = num;
         this.addInfo = addInfo;
-        this.dogName = dogName;
-        this.age = age;
-        this.specie = specie;
-        this.race = race;
-        this.gender = gender;
+
     }
 
 }

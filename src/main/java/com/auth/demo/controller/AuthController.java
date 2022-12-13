@@ -37,6 +37,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @RestController
+
 @RequestMapping(value = "/auth")
 public class AuthController {
     static String secret = "yjI5BMKPBV55bhp4hqIiVUSxWFiYElL2HU213Y7128JS1289IKO";
@@ -86,8 +87,6 @@ public class AuthController {
     }
 
     @PostMapping
-    @Transactional(rollbackOn = { Exception.class, NullPointerException.class })
-
     public ResponseEntity<String> create(@RequestBody UserDTO userDTO) {
         User verifier = userService.findUserByEmail(userDTO.getEmail());
         if (verifier != null) {
@@ -100,6 +99,8 @@ public class AuthController {
             User user = new User(userDTO.getEmail(), newPassword);
             User savedUser = userService.saveUser(user);
             JSONObject userJson = new JSONObject(savedUser);
+
+            System.out.println("PASSED THROUGHT IT");
 
             JSONObject json = new JSONObject(userDTO);
             json.put("id", savedUser.getId());
@@ -119,8 +120,6 @@ public class AuthController {
                 JSONObject errorJSON = new JSONObject(response.body());
                 throw new Exception(errorJSON.getString("error"));
             }
-
-            System.out.println(json.toString());
 
             return new ResponseEntity<String>(userJson.toString(), HttpStatus.CREATED);
 

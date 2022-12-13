@@ -1,16 +1,15 @@
 package com.auth.demo.controller;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.json.JSONObject;
-import org.springframework.data.mapping.AccessOptions.SetOptions.Propagation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,7 +24,6 @@ import com.auth.demo.dto.RoleToUserDTO;
 import com.auth.demo.dto.UserDTO;
 import com.auth.demo.model.User;
 import com.auth.demo.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -91,6 +89,10 @@ public class AuthController {
     @Transactional(rollbackOn = { Exception.class, NullPointerException.class })
 
     public ResponseEntity<String> create(@RequestBody UserDTO userDTO) {
+        User verifier = userService.findUserByEmail(userDTO.getEmail());
+        if (verifier != null) {
+            return new ResponseEntity<String>("Email already registered", HttpStatus.BAD_REQUEST);
+        }
         try {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String newPassword = passwordEncoder.encode(userDTO.getPassword());
@@ -100,19 +102,20 @@ public class AuthController {
             JSONObject userJson = new JSONObject(savedUser);
 
             JSONObject json = new JSONObject(userDTO);
-            json.put("id", 1);
+            json.put("id", savedUser.getId());
 
             var request = HttpRequest.newBuilder()
-                    .uri(new URI("http://192.168.1.100:6666/owner"))
+                    .uri(new URI("http://localhost:6666/owner"))
                     .header("Content-type", "application/json")
                     .POST(BodyPublishers.ofString(json.toString()))
+                    .timeout(Duration.ofSeconds(15))
                     .build();
             var client = HttpClient.newHttpClient();
 
             HttpResponse<String> response = client.send(request,
                     HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 400) {
+            if (response.statusCode() != 201 && response.statusCode() != 200) {
                 JSONObject errorJSON = new JSONObject(response.body());
                 throw new Exception(errorJSON.getString("error"));
             }
@@ -122,9 +125,6 @@ public class AuthController {
             return new ResponseEntity<String>(userJson.toString(), HttpStatus.CREATED);
 
         } catch (Exception e) {
-            // JSONObject json = new JSONObject();
-            // json.put("message", "Credentials might be already registered");
-            // json.put("error", e.getLocalizedMessage());
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 
         }

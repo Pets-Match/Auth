@@ -48,7 +48,8 @@ public class AuthController {
     public AuthController(UserService userService) {
         this.userService = userService;
     }
-
+    
+    @SuppressWarnings("deprecation")
     @GetMapping()
     public ResponseEntity<String> auth(@RequestBody AuthDTO auth) {
         User usuario = userService.findUserByEmail(auth.getEmail());

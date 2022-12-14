@@ -5,14 +5,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -100,13 +101,11 @@ public class AuthController {
             User savedUser = userService.saveUser(user);
             JSONObject userJson = new JSONObject(savedUser);
 
-            System.out.println("PASSED THROUGHT IT");
-
             JSONObject json = new JSONObject(userDTO);
             json.put("id", savedUser.getId());
 
             var request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:6666/owner"))
+                    .uri(new URI("http://localhost:3030/owner"))
                     .header("Content-type", "application/json")
                     .POST(BodyPublishers.ofString(json.toString()))
                     .timeout(Duration.ofSeconds(15))
@@ -136,8 +135,54 @@ public class AuthController {
         return null;
     }
 
+    @DeleteMapping("/user")
+    public ResponseEntity<String> deleteUser(HttpServletRequest request) {
+        try {
+            if (middleware(request).getStatusCodeValue() == 200) {
+                JSONObject middlewareResponseBody = new JSONObject(middleware(request).getBody());
+
+                Optional<User> user = userService.findUserById(middlewareResponseBody.getInt("id"));
+
+                if (!user.isEmpty()) {
+
+                    var requestToService = HttpRequest.newBuilder()
+                            .uri(new URI("http://localhost:3030/owner"))
+                            .header("Content-type", "application/json")
+                            .DELETE()
+                            .headers("Authorization", request.getHeader("Authorization"))
+                            .timeout(Duration.ofSeconds(15))
+                            .build();
+                    var client = HttpClient.newHttpClient();
+
+                    HttpResponse<String> response = client.send(requestToService,
+                            HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() == 200) {
+                        userService.deleteUserById(middlewareResponseBody.getInt("id"));
+                        JSONObject toResponse = new JSONObject();
+                        toResponse.put("message",
+                                "Done! We have deleted all your data (such as owner info and pet info");
+                        return new ResponseEntity<String>("", HttpStatus.OK);
+                    } else {
+                        JSONObject errorJSON = new JSONObject(response.body());
+                        throw new Exception(errorJSON.toString());
+                    }
+
+                } else {
+                    return new ResponseEntity<String>("not feito, id not found", HttpStatus.OK);
+                }
+            } else {
+                return new ResponseEntity<String>("verify your token", middleware(request).getStatusCode());
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping("/users")
     public ResponseEntity<List<User>> getUsers() {
+
         return ResponseEntity.ok().body(userService.getUsers());
     }
 
@@ -161,7 +206,7 @@ public class AuthController {
 
             return new ResponseEntity<String>(response.toString(), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<String>("", HttpStatus.UNAUTHORIZED);
         }
     }
 

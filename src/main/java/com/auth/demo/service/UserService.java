@@ -7,6 +7,7 @@ import com.auth.demo.repositories.RoleRepository;
 import com.auth.demo.repositories.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -15,7 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-@Transactional(rollbackOn = { Exception.class, NullPointerException.class })
+@Transactional(rollbackOn = { Exception.class })
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -31,6 +32,15 @@ public class UserService implements UserDetailsService {
         Role role = roleRepository.findByName(roleName);
 
         user.getRoles().add(role);
+    }
+
+    public Optional<User> findUserById(Integer id) {
+        return userRepository.findById(id);
+
+    }
+
+    public void deleteUserById(Integer id) {
+        userRepository.deleteById(id);
     }
 
     public User findUserByEmail(String email) {

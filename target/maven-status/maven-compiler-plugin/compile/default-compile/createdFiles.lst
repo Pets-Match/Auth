@@ -1,0 +1,17 @@
+com\auth\demo\controller\RoleController.class
+com\auth\demo\dto\RoleDTO.class
+com\auth\demo\model\User.class
+com\auth\demo\data\UserInfo.class
+com\auth\demo\controller\AuthController.class
+com\auth\demo\model\Role.class
+com\auth\demo\dto\AuthDTO.class
+com\auth\demo\dto\RoleToUserDTO.class
+com\auth\demo\repositories\UserRepository.class
+com\auth\demo\service\UserService.class
+com\auth\demo\connections\RabbitMQConnection.class
+com\auth\demo\DemoApplication.class
+com\auth\demo\security\JWTAuthenticationFilter.class
+com\auth\demo\repositories\RoleRepository.class
+com\auth\demo\service\RoleService.class
+com\auth\demo\interfaces\UserDetailsService.class
+com\auth\demo\dto\UserDTO.class

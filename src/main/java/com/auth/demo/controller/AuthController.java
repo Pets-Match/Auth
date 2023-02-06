@@ -66,7 +66,7 @@ public class AuthController {
             if (verify) {
                 String jwtToken = Jwts.builder()
                         .setSubject(usuario.getEmail())
-                        .setIssuer("localhost:8080")
+                        .setIssuer("34.207.221.200:8080")
                         .setIssuedAt(new Date())
                         .setExpiration(
                                 Date.from(

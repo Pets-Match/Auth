@@ -42,7 +42,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @RequestMapping(value = "/auth")
 public class AuthController {
     static String secret = "yjI5BMKPBV55bhp4hqIiVUSxWFiYElL2HU213Y7128JS1289IKO";
-    static String serverURL = "localhost:3030";
+    static String serverURL = "34.207.221.200:3030";
 
     private final UserService userService;
 

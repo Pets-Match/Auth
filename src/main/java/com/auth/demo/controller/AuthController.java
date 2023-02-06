@@ -42,13 +42,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @RequestMapping(value = "/auth")
 public class AuthController {
     static String secret = "yjI5BMKPBV55bhp4hqIiVUSxWFiYElL2HU213Y7128JS1289IKO";
+    static String serverURL = "localhost:3030";
 
     private final UserService userService;
 
     public AuthController(UserService userService) {
         this.userService = userService;
     }
-    
+
     @SuppressWarnings("deprecation")
     @GetMapping()
     public ResponseEntity<String> auth(@RequestBody AuthDTO auth) {
@@ -94,6 +95,7 @@ public class AuthController {
         if (verifier != null) {
             return new ResponseEntity<String>("Email already registered", HttpStatus.BAD_REQUEST);
         }
+
         try {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String newPassword = passwordEncoder.encode(userDTO.getPassword());
@@ -106,7 +108,7 @@ public class AuthController {
             json.put("id", savedUser.getId());
 
             var request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:3030/owner"))
+                    .uri(new URI("http://" + serverURL + "/owner"))
                     .header("Content-type", "application/json")
                     .POST(BodyPublishers.ofString(json.toString()))
                     .timeout(Duration.ofSeconds(15))
@@ -147,7 +149,7 @@ public class AuthController {
                 if (!user.isEmpty()) {
 
                     var requestToService = HttpRequest.newBuilder()
-                            .uri(new URI("http://localhost:3030/owner"))
+                            .uri(new URI("http://" + serverURL + "/owner"))
                             .header("Content-type", "application/json")
                             .DELETE()
                             .headers("Authorization", request.getHeader("Authorization"))
@@ -194,6 +196,8 @@ public class AuthController {
             String authorizationHeader = request.getHeader("Authorization");
             String token = authorizationHeader.substring("Bearer".length()).trim();
 
+            System.out.println(token);
+
             Jws<Claims> jwt = Jwts.parserBuilder()
                     .setSigningKey(secret)
                     .build()
@@ -207,7 +211,8 @@ public class AuthController {
 
             return new ResponseEntity<String>(response.toString(), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<String>("", HttpStatus.UNAUTHORIZED);
+            System.out.println(e.getMessage());
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
     }
 
